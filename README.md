@@ -9,7 +9,7 @@ an SMT-solver (Z3) to solve constraints on question difficulty
 
 ### Development
 
-1. Install python 3.6+
+1. Install python 3.7+
 2. Clone repo
 3. [Optional] Create a virtual environment
 4. `pip install -r requirements.txt`
