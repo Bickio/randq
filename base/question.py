@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar, Dict, Tuple
+from typing import Any, TypeVar, Dict, Tuple, Generator
 
 import z3
 
@@ -12,10 +12,14 @@ AnswerType = TypeVar("AnswerType", bound=Variable)
 class Question(ABC):
     __solver: z3.Solver
 
-    def __init__(self):
+    def __init__(self, min_difficulty=0, max_difficulty=None):
         self.__solver = z3.Solver()
         self.__givens = self.givens()
         self.__solution = self.solve(self.__givens)
+        self.__difficulty = self.__solution.total_difficulty()
+        self.__solver.add(self.__difficulty >= min_difficulty)
+        if max_difficulty is not None:
+            self.__solver.add(self.__difficulty <= max_difficulty)
         self.__variations = all_smt(
             self.__solver, [given.value() for given in self.__givens.values()]
         )
@@ -44,17 +48,19 @@ class Question(ABC):
         """Format the answer for humans"""
         raise NotImplementedError
 
-    def generate(self) -> Tuple[str, str]:
-        try:
-            m = next(self.__variations)
-        except StopIteration:
-            raise Exception("No more unique questions available")
-        given_values = {
-            name: m.eval(given.value(), model_completion=True)
-            for name, given in self.__givens.items()
-        }
-        solution_value = m.eval(self.__solution.value(), model_completion=True)
-        return self.format_question(given_values), self.format_answer(solution_value)
+    def variations(self) -> Generator[Tuple[str, str, int], None, None]:
+        for m in self.__variations:
+            given_values = {
+                name: m.eval(given.value(), model_completion=True)
+                for name, given in self.__givens.items()
+            }
+            solution_value = m.eval(self.__solution.value(), model_completion=True)
+            difficulty = m.eval(self.__difficulty)
+            yield (
+                self.format_question(given_values),
+                self.format_answer(solution_value),
+                difficulty,
+            )
 
 
 def all_smt(s, initial_terms):

@@ -27,9 +27,16 @@ class AdditionQuestion(Question):
 
 def test_addition_question():
     q = AdditionQuestion()
-    question_text, answer_text = q.generate()
-    assert question_text == "What is 0 + 0?"
-    assert answer_text == "0"
-    question_text, answer_text = q.generate()
-    assert question_text == "What is 2 + 2?"
-    assert answer_text == "4"
+    generator = q.variations()
+    question_text, answer_text, difficulty = next(generator)
+    assert question_text.startswith("What is ")
+    assert answer_text.isdigit()
+
+
+def test_difficulty():
+    q = AdditionQuestion(min_difficulty=2, max_difficulty=2)
+    num_variations = 0
+    for q_text, a_text, difficulty in q.variations():
+        assert difficulty == 2
+        num_variations += 1
+    assert num_variations == 100
