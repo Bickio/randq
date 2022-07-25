@@ -16,8 +16,9 @@ class Integer(Variable):
         self,
         value: Union[z3.ArithRef, int] = None,
         parents: Set[Variable] = None,
+        difficulty: int = 0,
     ):
-        super().__init__(parents)
+        super().__init__(parents, difficulty)
         if value is not None:
             self.__value = z3.IntSort().cast(value)
         else:
@@ -27,7 +28,38 @@ class Integer(Variable):
         return self.__value
 
     def __add__(self, other: "Integer"):
-        return Integer(self.value() + other.value(), {self, other})
+        difficulty = int_complexity(self.value()) + int_complexity(other.value())
+        return Integer(
+            self.value() + other.value(), {self, other}, difficulty=difficulty
+        )
 
     def __sub__(self, other: "Integer"):
-        return Integer(self.value() - other.value(), {self, other})
+        difficulty = (
+            int_complexity(self.value())
+            + int_complexity(other.value())
+            + +1  # One additional negation
+        )
+        return Integer(
+            self.value() - other.value(), {self, other}, difficulty=difficulty
+        )
+
+
+def int_complexity(num: z3.ArithRef):
+    """An arbitrary measure of how complex an integer is to manipulate"""
+    return num_digits(num) + z3.If(num < 0, 1, 0)
+
+
+def num_digits(num: z3.ArithRef):
+    return z3.If(
+        absolute(num) < 10,
+        1,
+        z3.If(
+            absolute(num) < 100,
+            2,
+            z3.If(absolute(num) < 1000, 3, z3.If(absolute(num) < 10000, 4, 5)),
+        ),
+    )
+
+
+def absolute(x):
+    return z3.If(x >= 0, x, -x)
