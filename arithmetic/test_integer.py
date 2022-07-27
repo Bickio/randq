@@ -107,3 +107,12 @@ def test_power(a, b, difficulty, empty_model):
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a**b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
+
+
+def test_min_max():
+    i = Integer(minimum=1, maximum=1)
+    s = z3.Solver()
+    s.add(*i.constraints())
+    s.check()
+    model = s.model()
+    assert model.eval(i.value(), model_completion=True) == 1

@@ -16,6 +16,9 @@ class Question(ABC):
         self.__solver = z3.Solver()
         self.__givens = self.givens()
         self.__solution = self.solve(self.__givens)
+        all_variables = {self.__solution} | self.__solution.ancestors()
+        for variable in all_variables:
+            self.__solver.add(*variable.constraints())
         self.__difficulty = self.__solution.total_difficulty()
         self.__solver.add(self.__difficulty >= min_difficulty)
         if max_difficulty is not None:

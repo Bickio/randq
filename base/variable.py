@@ -1,7 +1,9 @@
 from abc import ABC
 from itertools import chain
 
-from typing import Set
+from typing import Set, List
+
+import z3
 
 
 class Variable(ABC):
@@ -10,6 +12,7 @@ class Variable(ABC):
     __id: int
     __parents: Set["Variable"]
     __difficulty: int
+    _constraints: List[z3.ExprRef] = []
 
     def __init__(self, parents: Set["Variable"] = None, difficulty: int = 0):
         if parents is None:
@@ -34,3 +37,6 @@ class Variable(ABC):
         return self.__parents | set(
             chain(*(parent.ancestors() for parent in self.__parents))
         )
+
+    def constraints(self) -> List[z3.ExprRef]:
+        return self._constraints

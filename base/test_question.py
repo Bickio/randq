@@ -30,7 +30,9 @@ def test_addition_question():
     generator = q.variations()
     question_text, answer_text, difficulty = next(generator)
     assert question_text.startswith("What is ")
-    assert answer_text.isdigit()
+    assert answer_text.isdigit() or (
+        answer_text.startswith("-") and answer_text[1:].isdigit()
+    )
 
 
 def test_difficulty():
