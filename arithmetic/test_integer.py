@@ -88,3 +88,22 @@ def test_multiply(a, b, difficulty, empty_model):
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a * b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
+
+
+@pytest.mark.parametrize(
+    "a,b,difficulty",
+    [
+        (1, 6, 5),
+        (-2, 8, 8),
+        (2, -5, 4),
+        (-3, -8, 8),
+        (10, 1, 0),
+        (15, -28, 54),
+    ],
+)
+def test_power(a, b, difficulty, empty_model):
+    result = Integer(a) ** Integer(b)
+    assert isinstance(result, Integer)
+    assert isinstance(result.value(), z3.ArithRef)
+    assert empty_model.eval(result.value(), model_completion=True) == a**b
+    assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
