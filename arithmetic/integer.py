@@ -49,6 +49,16 @@ class Integer(Variable):
             self.value() * other.value(), {self, other}, difficulty=difficulty
         )
 
+    def __pow__(self, other: "Integer"):
+        difficulty = (
+            int_complexity(absolute(self.value())) * (absolute(other.value()) - 1)
+        ) + z3.If(self.value() < 0, 1, 0)
+        return Integer(
+            z3.ToInt(self.value() ** other.value()),
+            {self, other},
+            difficulty=difficulty,
+        )
+
 
 def int_complexity(num: z3.ArithRef):
     """An arbitrary measure of how complex an integer is to manipulate"""
