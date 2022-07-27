@@ -17,12 +17,19 @@ class Integer(Variable):
         value: Union[z3.ArithRef, int] = None,
         parents: Set[Variable] = None,
         difficulty: int = 0,
+        maximum: int = None,
+        minimum: int = None,
     ):
         super().__init__(parents, difficulty)
         if value is not None:
             self.__value = z3.IntSort().cast(value)
         else:
             self.__value = z3.Int(f"Integer({self.id()})")
+
+        if maximum is not None:
+            self._constraints.append(self.__value <= maximum)
+        if minimum is not None:
+            self._constraints.append(self.__value >= minimum)
 
     def value(self):
         return self.__value
