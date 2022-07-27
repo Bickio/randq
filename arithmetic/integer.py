@@ -37,7 +37,7 @@ class Integer(Variable):
         difficulty = (
             int_complexity(self.value())
             + int_complexity(other.value())
-            + +1  # One additional negation
+            + 1  # One additional negation
         )
         return Integer(
             self.value() - other.value(), {self, other}, difficulty=difficulty
