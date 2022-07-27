@@ -68,3 +68,23 @@ def test_subtract(a, b, difficulty, empty_model):
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a - b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
+
+
+@pytest.mark.parametrize(
+    "a,b,difficulty",
+    [
+        (1, 6, 2),
+        (-2, 8, 4),
+        (2, -5, 4),
+        (-3, -8, 8),
+        (10, 1, 4),
+        (15, -28, 12),
+        (-1004, -152, 40),
+    ],
+)
+def test_multiply(a, b, difficulty, empty_model):
+    result = Integer(a) * Integer(b)
+    assert isinstance(result, Integer)
+    assert isinstance(result.value(), z3.ArithRef)
+    assert empty_model.eval(result.value(), model_completion=True) == a * b
+    assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty

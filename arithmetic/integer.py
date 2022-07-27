@@ -43,6 +43,12 @@ class Integer(Variable):
             self.value() - other.value(), {self, other}, difficulty=difficulty
         )
 
+    def __mul__(self, other: "Integer"):
+        difficulty = int_complexity(self.value()) * int_complexity(other.value()) * 2
+        return Integer(
+            self.value() * other.value(), {self, other}, difficulty=difficulty
+        )
+
 
 def int_complexity(num: z3.ArithRef):
     """An arbitrary measure of how complex an integer is to manipulate"""
