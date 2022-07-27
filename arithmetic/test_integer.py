@@ -31,40 +31,40 @@ def empty_model():
 
 
 @pytest.mark.parametrize(
-    "a,b,expected,difficulty",
+    "a,b,difficulty",
     [
-        (1, 6, 7, 2),
-        (-2, 8, 6, 3),
-        (2, -5, -3, 3),
-        (-3, -8, -11, 4),
-        (10, 1, 11, 3),
-        (15, -28, -13, 5),
-        (-1004, -152, -1156, 9),
+        (1, 6, 2),
+        (-2, 8, 3),
+        (2, -5, 3),
+        (-3, -8, 4),
+        (10, 1, 3),
+        (15, -28, 5),
+        (-1004, -152, 9),
     ],
 )
-def test_add(a, b, expected, difficulty, empty_model):
+def test_add(a, b, difficulty, empty_model):
     result = Integer(a) + Integer(b)
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
-    assert empty_model.eval(result.value(), model_completion=True) == expected
+    assert empty_model.eval(result.value(), model_completion=True) == a + b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
 
 
 @pytest.mark.parametrize(
-    "a,b,expected,difficulty",
+    "a,b,difficulty",
     [
-        (1, 6, -5, 3),
-        (-2, 8, -10, 4),
-        (2, -5, 7, 4),
-        (-3, -8, 5, 5),
-        (10, 1, 9, 4),
-        (15, -28, 43, 6),
-        (-1004, -152, -852, 10),
+        (1, 6, 3),
+        (-2, 8, 4),
+        (2, -5, 4),
+        (-3, -8, 5),
+        (10, 1, 4),
+        (15, -28, 6),
+        (-1004, -152, 10),
     ],
 )
-def test_subtract(a, b, expected, difficulty, empty_model):
+def test_subtract(a, b, difficulty, empty_model):
     result = Integer(a) - Integer(b)
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
-    assert empty_model.eval(result.value(), model_completion=True) == expected
+    assert empty_model.eval(result.value(), model_completion=True) == a - b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
