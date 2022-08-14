@@ -3,12 +3,11 @@ from typing import Union, Set
 import z3
 
 from base.variable import Variable
+from logic.boolean import Boolean
 
 
 class Integer(Variable):
     """Represents an integer variable"""
-
-    __next_id = 0
 
     __value: z3.ArithRef
 
@@ -17,10 +16,11 @@ class Integer(Variable):
         value: Union[z3.ArithRef, int] = None,
         parents: Set[Variable] = None,
         difficulty: int = 0,
+        auto_dependents: bool = True,
         maximum: int = None,
         minimum: int = None,
     ):
-        super().__init__(parents, difficulty)
+        super().__init__(parents, difficulty, auto_dependents)
         if value is not None:
             self.__value = z3.IntSort().cast(value)
         else:
@@ -64,6 +64,47 @@ class Integer(Variable):
             z3.ToInt(self.value() ** other.value()),
             {self, other},
             difficulty=difficulty,
+        )
+
+    def __floordiv__(self, other):
+        """
+        NOTE: This is not really floor div!
+        It is standard division, but the result must also be an integer
+        """
+        difficulty = int_complexity(self.value()) * int_complexity(other.value()) * 2
+        self._constraints.append(self.value() % other.value() == 0)
+        return Integer(
+            self.value() / other.value(),
+            {self, other},
+            difficulty=difficulty,
+        )
+
+    def __gt__(self, other: "Integer") -> Boolean:
+        return Boolean(
+            self.value() > other.value(),
+            {self, other},
+            difficulty=1,
+        )
+
+    def __lt__(self, other: "Integer") -> Boolean:
+        return Boolean(
+            self.value() < other.value(),
+            {self, other},
+            difficulty=1,
+        )
+
+    def __ge__(self, other: "Integer") -> Boolean:
+        return Boolean(
+            self.value() >= other.value(),
+            {self, other},
+            difficulty=1,
+        )
+
+    def __le__(self, other: "Integer") -> Boolean:
+        return Boolean(
+            self.value() <= other.value(),
+            {self, other},
+            difficulty=1,
         )
 
 

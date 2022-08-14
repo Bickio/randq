@@ -23,13 +23,6 @@ def test_construct_parents():
     Integer(parents={Integer(), Integer()})
 
 
-@pytest.fixture
-def empty_model():
-    s = z3.Solver()
-    s.check()
-    return s.model()
-
-
 @pytest.mark.parametrize(
     "a,b,difficulty",
     [
@@ -44,6 +37,7 @@ def empty_model():
 )
 def test_add(a, b, difficulty, empty_model):
     result = Integer(a) + Integer(b)
+    result.override_used()
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a + b
@@ -64,6 +58,7 @@ def test_add(a, b, difficulty, empty_model):
 )
 def test_subtract(a, b, difficulty, empty_model):
     result = Integer(a) - Integer(b)
+    result.override_used()
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a - b
@@ -84,6 +79,7 @@ def test_subtract(a, b, difficulty, empty_model):
 )
 def test_multiply(a, b, difficulty, empty_model):
     result = Integer(a) * Integer(b)
+    result.override_used()
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a * b
@@ -103,14 +99,74 @@ def test_multiply(a, b, difficulty, empty_model):
 )
 def test_power(a, b, difficulty, empty_model):
     result = Integer(a) ** Integer(b)
+    result.override_used()
     assert isinstance(result, Integer)
     assert isinstance(result.value(), z3.ArithRef)
     assert empty_model.eval(result.value(), model_completion=True) == a**b
     assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
 
 
+@pytest.mark.parametrize(
+    "a,b,difficulty",
+    [
+        (6, 1, 2),
+        (6, 2, 2),
+        (6, 3, 2),
+        (12, 3, 4),
+        (12, -3, 8),
+    ],
+)
+def test_divide(a, b, difficulty, empty_model):
+    result = Integer(a) // Integer(b)
+    result.override_used()
+    assert isinstance(result, Integer)
+    assert isinstance(result.value(), z3.ArithRef)
+    assert empty_model.eval(result.value(), model_completion=True) == a / b
+    assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
+
+
+def test_divide_constraint():
+    s = z3.Solver()
+    a = Integer(5)
+    b = Integer(2)
+    result = a // b
+    result.override_used()
+    s.add(a.constraints())
+    s.add(b.constraints())
+    s.add(result.constraints())
+    assert s.check() == z3.unsat
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        (1, 0),
+        (2, 3),
+        (-1, 2),
+        (12, 5),
+        (2, -1),
+        (1, 1),
+        (-3, -3),
+    ],
+)
+def test_inequality(a, b, empty_model):
+    i_a = Integer(a)
+    i_b = Integer(b)
+    less = i_a < i_b
+    greater = i_a > i_b
+    less_equal = i_a <= i_b
+    greater_equal = i_a >= i_b
+    for result in [less, greater, less_equal, greater_equal]:
+        result.override_used()
+        assert empty_model.eval(result.difficulty(), model_completion=True) == 1
+    assert empty_model.eval(less.value(), model_completion=True) == (a < b)
+    assert empty_model.eval(greater.value(), model_completion=True) == (a > b)
+    assert empty_model.eval(less_equal.value(), model_completion=True) == (a <= b)
+    assert empty_model.eval(greater_equal.value(), model_completion=True) == (a >= b)
+
+
 def test_min_max():
-    i = Integer(minimum=1, maximum=1)
+    i = Integer(maximum=1, minimum=1)
     s = z3.Solver()
     s.add(*i.constraints())
     s.check()
