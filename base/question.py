@@ -16,7 +16,12 @@ class Question(ABC):
         self.__solver = z3.Solver()
         self.__givens = self.givens()
         self.__solution = self.solve(self.__givens)
-        all_variables = {self.__solution} | self.__solution.ancestors()
+        self.__solution.override_used()
+        all_variables = (
+            {self.__solution}
+            | self.__solution.ancestors()
+            | set(self.__givens.values())
+        )
         for variable in all_variables:
             self.__solver.add(*variable.constraints())
         self.__difficulty = self.__solution.total_difficulty()
