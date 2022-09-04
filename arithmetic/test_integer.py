@@ -138,6 +138,27 @@ def test_divide_constraint():
 
 
 @pytest.mark.parametrize(
+    "a,b,difficulty",
+    [
+        (6, 4, 2),
+        (5, 2, 2),
+        (7, 3, 2),
+        (14, 3, 4),
+        (26, -3, 8),
+        (-26, 3, 6),
+        (-26, -3, 12),
+    ],
+)
+def test_mod(a, b, difficulty, empty_model):
+    result = Integer(a) % Integer(b)
+    result.override_used()
+    assert isinstance(result, Integer)
+    assert isinstance(result.value(), z3.ArithRef)
+    assert empty_model.eval(result.value(), model_completion=True) == a % abs(b)
+    assert empty_model.eval(result.difficulty(), model_completion=True) == difficulty
+
+
+@pytest.mark.parametrize(
     "a,b",
     [
         (1, 0),

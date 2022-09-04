@@ -6,21 +6,32 @@ from logic.boolean import Boolean
 
 
 def if_else(condition: Boolean, if_value: Variable, else_value: Variable):
-    for cl in (Boolean, Integer):
-        if isinstance(if_value, cl) and isinstance(else_value, cl):
-            result = cl(
-                z3.If(condition.value(), if_value.value(), else_value.value()),
-                parents={condition, if_value, else_value},
-                difficulty=1,
-                auto_dependents=False,
-            )
-            break
+    if isinstance(if_value, tuple) and isinstance(else_value, tuple):
+        if_values, else_values = if_value, else_value
     else:
-        if type(if_value) != type(else_value):
-            raise TypeError("if_value and else_value must be the same type")
+        if_values, else_values = (if_value,), (else_value,)
+
+    results = []
+    for if_val, else_val in zip(if_values, else_values):
+        for cl in (Boolean, Integer):
+            if isinstance(if_val, cl) and isinstance(else_val, cl):
+                result = cl(
+                    z3.If(condition.value(), if_val.value(), else_val.value()),
+                    parents={condition, if_val, else_val},
+                    difficulty=1,
+                    auto_dependents=False,
+                )
+                break
         else:
-            raise NotImplementedError("Variable type not supported by if_else")
-    condition.add_dependent(result)
-    if_value.add_dependent(result, condition.value())
-    else_value.add_dependent(result, z3.Not(condition.value()))
-    return result
+            if type(if_val) != type(else_val):
+                raise TypeError("if_val and else_val must be the same type")
+            else:
+                raise NotImplementedError("Variable type not supported by if_else")
+        if_val.add_dependent(result, condition.value())
+        else_val.add_dependent(result, z3.Not(condition.value()))
+        condition.add_dependent(result)
+        results.append(result)
+    if len(results) == 1:
+        return results[0]
+    else:
+        return tuple(results)
