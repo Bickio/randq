@@ -79,6 +79,14 @@ class Integer(Variable):
             difficulty=difficulty,
         )
 
+    def __mod__(self, other):
+        difficulty = int_complexity(self.value()) * int_complexity(other.value()) * 2
+        return Integer(
+            self.value() % other.value(),
+            {self, other},
+            difficulty=difficulty,
+        )
+
     def __gt__(self, other: "Integer") -> Boolean:
         return Boolean(
             self.value() > other.value(),
@@ -103,6 +111,20 @@ class Integer(Variable):
     def __le__(self, other: "Integer") -> Boolean:
         return Boolean(
             self.value() <= other.value(),
+            {self, other},
+            difficulty=1,
+        )
+
+    def eq(self, other):
+        return Boolean(
+            self.value() == other.value(),
+            {self, other},
+            difficulty=1,
+        )
+
+    def __ne__(self, other):
+        return Boolean(
+            self.value() != other.value(),
             {self, other},
             difficulty=1,
         )
